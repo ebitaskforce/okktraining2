@@ -35,26 +35,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginUser = async (email: string, _pass: string): Promise<UserProfile> => {
     setIsLoading(true);
     try {
+      // 1. Supabase Mode
       if (isSupabaseConfigured && supabase) {
-        try {
-          const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({ email, password: _pass });
-          if (!authErr && authData?.user) {
-            const { data: profile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single();
-            if (profile) {
-              setUser(profile);
-              return profile;
-            }
-          } else if (authErr) {
-            console.warn('Supabase Auth warning:', authErr.message);
+        const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({ 
+          email: email.trim(), 
+          password: _pass 
+        });
+
+        if (authErr) {
+          throw new Error(authErr.message);
+        }
+
+        if (authData?.user) {
+          const { data: profile, error: profileErr } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authData.user.id)
+            .single();
+
+          if (profileErr || !profile) {
+            throw new Error('Authenticated successfully, but profile record was not found in database. Please run Step 3 in Supabase SQL setup.');
           }
-        } catch (sbErr: any) {
-          console.warn('Supabase authentication failed, attempting demo account fallback:', sbErr?.message || sbErr);
+
+          if (!profile.is_active) {
+            throw new Error('Account is disabled by system administrator.');
+          }
+
+          setUser(profile);
+          return profile;
         }
       }
 
-      // Local Mock / Demo Account Fallback Validation
+      // 2. Offline / Demo Mode Fallback (When VITE_SUPABASE_* is missing)
       const profiles = mockStorage.getProfiles();
-      const match = profiles.find(p => p.email.toLowerCase() === email.toLowerCase());
+      const match = profiles.find(p => p.email.toLowerCase() === email.trim().toLowerCase());
       if (!match) {
         throw new Error('Invalid email address or password.');
       }
@@ -80,6 +94,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const registerUser = async (data: Omit<UserProfile, 'id' | 'role' | 'is_active' | 'created_at'> & { password: string }): Promise<UserProfile> => {
     setIsLoading(true);
     try {
+      if (isSupabaseConfigured && supabase) {
+        const { data: authData, error: authErr } = await supabase.auth.signUp({
+          email: data.email.trim(),
+          password: data.password
+        });
+        if (authErr) throw new Error(authErr.message);
+
+        if (authData.user) {
+          const newProfile: UserProfile = {
+            id: authData.user.id,
+            full_name: data.full_name,
+            staff_id: data.staff_id,
+            department: data.department,
+            phone: data.phone,
+            email: data.email.trim(),
+            role: 'user',
+            is_active: true,
+            created_at: new Date().toISOString()
+          };
+
+          const { error: profErr } = await supabase.from('profiles').insert([newProfile]);
+          if (profErr) throw new Error(profErr.message);
+
+          setUser(newProfile);
+          return newProfile;
+        }
+      }
+
+      // Local Demo Mode Registration
       const profiles = mockStorage.getProfiles();
       const existingEmail = profiles.find(p => p.email.toLowerCase() === data.email.toLowerCase());
       if (existingEmail) throw new Error('Email address is already registered.');
@@ -109,6 +152,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const resetPassword = async (email: string): Promise<void> => {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw new Error(error.message);
+      return;
+    }
+
     const profiles = mockStorage.getProfiles();
     const match = profiles.find(p => p.email.toLowerCase() === email.toLowerCase());
     if (!match) {
@@ -116,7 +165,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    if (isSupabaseConfigured && supabase) {
+      await supabase.auth.signOut();
+    }
     setUser(null);
   };
 
