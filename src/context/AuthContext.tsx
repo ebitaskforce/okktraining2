@@ -36,16 +36,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       if (isSupabaseConfigured && supabase) {
-        const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({ email, password: _pass });
-        if (authErr) throw new Error(authErr.message);
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single();
-        if (profile) {
-          setUser(profile);
-          return profile;
+        try {
+          const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({ email, password: _pass });
+          if (!authErr && authData?.user) {
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single();
+            if (profile) {
+              setUser(profile);
+              return profile;
+            }
+          } else if (authErr) {
+            console.warn('Supabase Auth warning:', authErr.message);
+          }
+        } catch (sbErr: any) {
+          console.warn('Supabase authentication failed, attempting demo account fallback:', sbErr?.message || sbErr);
         }
       }
 
-      // Mock Login Validation
+      // Local Mock / Demo Account Fallback Validation
       const profiles = mockStorage.getProfiles();
       const match = profiles.find(p => p.email.toLowerCase() === email.toLowerCase());
       if (!match) {
@@ -107,7 +114,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!match) {
       throw new Error('No user account found with that email address.');
     }
-    // Simulation
   };
 
   const logout = () => {
