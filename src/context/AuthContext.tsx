@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginUser = async (email: string, _pass: string): Promise<UserProfile> => {
     setIsLoading(true);
     try {
-      // 1. Supabase Mode
+      // 1. Supabase Auth Mode
       if (isSupabaseConfigured && supabase) {
         const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({ 
           email: email.trim(), 
@@ -47,52 +47,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (authData?.user) {
-          // Fetch user profile
-          const { data: profile } = await supabase
+          // Fetch associated user profile
+          let { data: profile } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', authData.user.id)
-            .single();
+            .maybeSingle();
 
-          if (profile) {
-            if (!profile.is_active) {
-              throw new Error('Account is disabled by system administrator.');
-            }
-            setUser(profile);
-            return profile;
+          // Auto-heal: If profile row is missing in public.profiles, create it on the fly
+          if (!profile) {
+            const isAdminEmail = email.toLowerCase().includes('admin');
+            const newProfile: UserProfile = {
+              id: authData.user.id,
+              full_name: isAdminEmail ? 'System Administrator' : (email.split('@')[0] || 'User'),
+              staff_id: isAdminEmail ? 'ADM-0001' : `STF-${Math.floor(1000 + Math.random() * 9000)}`,
+              department: isAdminEmail ? 'Information Technology & Security' : 'General Staff',
+              phone: '+60 3-8000 8000',
+              email: authData.user.email || email.trim(),
+              role: isAdminEmail ? 'admin' : 'user',
+              is_active: true,
+              created_at: new Date().toISOString()
+            };
+
+            const { data: created } = await supabase
+              .from('profiles')
+              .insert([newProfile])
+              .select()
+              .single();
+
+            profile = created || newProfile;
           }
 
-          // Auto-heal missing profile row if user authenticated successfully in Auth
-          const autoProfile: UserProfile = {
-            id: authData.user.id,
-            full_name: authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0] || 'Administrator',
-            staff_id: `ADM-${Math.floor(1000 + Math.random() * 9000)}`,
-            department: 'Information Technology',
-            phone: '+60 3-8000 8000',
-            email: authData.user.email || email.trim(),
-            role: 'admin', // Auto-assign admin role when logging in through admin auth
-            is_active: true,
-            created_at: new Date().toISOString()
-          };
-
-          const { data: newProf, error: createErr } = await supabase
-            .from('profiles')
-            .upsert([autoProfile])
-            .select()
-            .single();
-
-          if (newProf && !createErr) {
-            setUser(newProf);
-            return newProf;
+          if (!profile.is_active) {
+            throw new Error('Account is disabled by system administrator.');
           }
 
-          // If RLS blocked upsert, return autoProfile so user is not stuck
-          setUser(autoProfile);
-          return autoProfile;
+          setUser(profile);
+          return profile;
         }
       }
 
-      // 2. Offline / Demo Mode Fallback (When VITE_SUPABASE_* is missing)
+      // 2. Offline / Local Demo Fallback Mode
       const profiles = mockStorage.getProfiles();
       const match = profiles.find(p => p.email.toLowerCase() === email.trim().toLowerCase());
       if (!match) {
@@ -140,13 +135,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             created_at: new Date().toISOString()
           };
 
-          const { error: profErr } = await supabase.from('profiles').upsert([newProfile]);
-          if (profErr) {
-            console.warn('Profile upsert warning:', profErr.message);
-          }
-
-          setUser(newProfile);
-          return newProfile;
+          const { data: created } = await supabase.from('profiles').insert([newProfile]).select().single();
+          const finalProfile = created || newProfile;
+          setUser(finalProfile);
+          return finalProfile;
         }
       }
 
