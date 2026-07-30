@@ -10,6 +10,7 @@ import { Footer } from '../components/common/Footer';
 import { Navbar } from '../components/common/Navbar';
 import { 
   ShieldCheck, 
+  Shield,
   Calendar, 
   Award, 
   ArrowRight, 
@@ -77,6 +78,13 @@ export const LandingPage: React.FC = () => {
                   className="px-7 py-3.5 rounded-xl font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 shadow-md transition-all text-sm"
                 >
                   User Login
+                </Link>
+                <Link
+                  to="/admin/login"
+                  className="px-7 py-3.5 rounded-xl font-bold bg-blue-900/60 hover:bg-blue-800/80 text-blue-200 border border-blue-700/50 shadow-md transition-all text-sm flex items-center gap-2"
+                >
+                  <Shield className="w-4 h-4 text-blue-400" />
+                  Admin Portal
                 </Link>
               </>
             )}

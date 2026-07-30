@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
@@ -7,7 +7,7 @@ import { Footer } from '../../components/common/Footer';
 import { Shield, Lock, Mail, ArrowRight } from 'lucide-react';
 
 export const AdminLogin: React.FC = () => {
-  const { loginAdmin } = useAuth();
+  const { user, loginAdmin } = useAuth();
   const { showToast } = useNotification();
   const navigate = useNavigate();
 
@@ -15,6 +15,12 @@ export const AdminLogin: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      navigate('/admin/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
