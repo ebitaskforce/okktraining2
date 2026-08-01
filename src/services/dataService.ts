@@ -306,6 +306,25 @@ export const dataService = {
     return mockStorage.getProfiles();
   },
 
+  async updateUserDetail(userId: string, updates: Partial<UserProfile>, adminId: string, adminName: string): Promise<UserProfile> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('profiles').update(updates).eq('id', userId).select().single();
+      if (!error && data) {
+        await this.addAuditLog(adminId, adminName, 'UPDATE_USER_DETAIL', `User #${userId}`, `Updated profile details for "${data.full_name}" (${data.email})`);
+        return data;
+      }
+    }
+
+    const profiles = mockStorage.getProfiles();
+    const index = profiles.findIndex(p => p.id === userId);
+    if (index === -1) throw new Error('User profile not found');
+    const updated = { ...profiles[index], ...updates };
+    profiles[index] = updated;
+    mockStorage.setProfiles(profiles);
+    mockStorage.addAuditLog(adminId, adminName, 'UPDATE_USER_DETAIL', `User #${userId}`, `Updated profile details for "${updated.full_name}" (${updated.email})`);
+    return updated;
+  },
+
   async updateUserRole(userId: string, role: 'user' | 'admin', adminId: string, adminName: string): Promise<UserProfile> {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase.from('profiles').update({ role }).eq('id', userId).select().single();
