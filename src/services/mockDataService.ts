@@ -16,12 +16,6 @@ const getRelativeDate = (offsetDays: number): string => {
   return d.toISOString().split('T')[0];
 };
 
-const getRelativeDateTime = (offsetMinutes: number): string => {
-  const d = new Date();
-  d.setMinutes(d.getMinutes() + offsetMinutes);
-  return d.toISOString();
-};
-
 // Initial Seed Profiles (Only Admin)
 const INITIAL_PROFILES: UserProfile[] = [
   {
@@ -37,96 +31,16 @@ const INITIAL_PROFILES: UserProfile[] = [
   }
 ];
 
-// Initial Seed Trainers
-const INITIAL_TRAINERS: Trainer[] = [
-  {
-    id: 'tr-1',
-    name: 'Prof. Jason Vance',
-    email: 'jason.vance@academy.org',
-    phone: '+60 11-1234 5678',
-    specialty: 'Cyber Security & AI Policy',
-    bio: 'Senior Technical Lead with over 15 years experience in Enterprise Cloud and Government Cybersecurity Compliance.',
-    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    created_at: getRelativeDate(-90)
-  },
-  {
-    id: 'tr-2',
-    name: 'Dr. Maria Santos',
-    email: 'maria.santos@academy.org',
-    phone: '+60 11-8765 4321',
-    specialty: 'Public Leadership & Change Management',
-    bio: 'International Speaker and Corporate Consultant specializing in agile government transformations.',
-    avatar_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-    created_at: getRelativeDate(-90)
-  },
-  {
-    id: 'tr-3',
-    name: 'Eng. Kevin Lim',
-    email: 'kevin.lim@academy.org',
-    phone: '+60 12-555 8899',
-    specialty: 'Data Analytics & Power BI Masterclass',
-    bio: 'Certified Microsoft Most Valuable Professional (MVP) in Data Analytics.',
-    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    created_at: getRelativeDate(-90)
-  }
-];
+// Initial Seed Trainers (Clean state)
+const INITIAL_TRAINERS: Trainer[] = [];
 
-// Initial Seed Sessions (Morning & Afternoon slots)
-const INITIAL_SESSIONS: TrainingSession[] = [
-  {
-    id: 'sess-1',
-    title: 'Cybersecurity Awareness & Threat Intelligence 2026',
-    description: 'Comprehensive workshop on protecting organizational infrastructure from phishing, ransomware, and zero-day vulnerabilities.',
-    trainer: 'Prof. Jason Vance',
-    trainer_id: 'tr-1',
-    venue: 'Auditorium Level 3, Main Building',
-    session_date: getRelativeDate(1),
-    session_type: 'morning',
-    max_seats: 25,
-    booked_seats: 0,
-    status: 'available',
-    registration_open: getRelativeDate(-10),
-    registration_close: getRelativeDate(0),
-    created_at: getRelativeDate(-12)
-  },
-  {
-    id: 'sess-2',
-    title: 'Advanced Executive Data Analytics with Power BI',
-    description: 'Learn to build real-time interactive reporting dashboards and automated data pipelines.',
-    trainer: 'Eng. Kevin Lim',
-    trainer_id: 'tr-3',
-    venue: 'Computer Lab B, Block 2',
-    session_date: getRelativeDate(1),
-    session_type: 'afternoon',
-    max_seats: 15,
-    booked_seats: 0,
-    status: 'available',
-    registration_open: getRelativeDate(-14),
-    registration_close: getRelativeDate(0),
-    created_at: getRelativeDate(-14)
-  },
-  {
-    id: 'sess-3',
-    title: 'Agile Leadership & Digital Transformation in Public Sector',
-    description: 'Master framework techniques for agile sprint planning, stakeholder alignment, and government digital service delivery.',
-    trainer: 'Dr. Maria Santos',
-    trainer_id: 'tr-2',
-    venue: 'Conference Room 1',
-    session_date: getRelativeDate(3),
-    session_type: 'morning',
-    max_seats: 30,
-    booked_seats: 0,
-    status: 'available',
-    registration_open: getRelativeDate(-7),
-    registration_close: getRelativeDate(2),
-    created_at: getRelativeDate(-7)
-  }
-];
+// Initial Seed Sessions (Clean state)
+const INITIAL_SESSIONS: TrainingSession[] = [];
 
-// Initial Seed Bookings (Empty for clean state)
+// Initial Seed Bookings (Clean state)
 const INITIAL_BOOKINGS: Booking[] = [];
 
-// Initial Waitlist (Empty)
+// Initial Waitlist (Clean state)
 const INITIAL_WAITLIST: WaitlistEntry[] = [];
 
 // Initial Org Settings
@@ -147,30 +61,11 @@ const INITIAL_ORG_SETTINGS: OrganizationSettings = {
   address: 'Level 5, Block B, Federal Government Administrative Centre, Putrajaya, Malaysia'
 };
 
-// Initial Notifications
+// Initial Notifications (Clean state)
 const INITIAL_NOTIFICATIONS: SystemNotification[] = [];
 
-// Initial Audit Logs
-const INITIAL_AUDIT_LOGS: AuditLog[] = [
-  {
-    id: 'log-1',
-    admin_id: 'user-admin-1',
-    admin_name: 'Dr. Sarah Connor',
-    action: 'APPROVED_BOOKING',
-    target: 'Booking #book-1 (Ahmad Razak)',
-    details: 'Approved morning session booking for Cybersecurity Awareness.',
-    timestamp: getRelativeDateTime(-720)
-  },
-  {
-    id: 'log-2',
-    admin_id: 'user-admin-1',
-    admin_name: 'Dr. Sarah Connor',
-    action: 'CREATE_SESSION',
-    target: 'Session #sess-4 (AI Prompt Engineering)',
-    details: 'Created afternoon session slot for 20 seats.',
-    timestamp: getRelativeDateTime(-500)
-  }
-];
+// Initial Audit Logs (Clean state)
+const INITIAL_AUDIT_LOGS: AuditLog[] = [];
 
 // LocalStorage Persistence Wrapper
 class StorageManager {
