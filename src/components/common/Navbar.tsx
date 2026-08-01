@@ -105,16 +105,6 @@ export const Navbar: React.FC = () => {
                 </Link>
               </>
             )}
-
-            {isAuthenticated && isAdmin && (
-              <Link
-                to="/admin/dashboard"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-semibold text-blue-600 bg-blue-50 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-xs"
-              >
-                <Shield className="w-4 h-4" />
-                Admin Dashboard
-              </Link>
-            )}
           </nav>
 
           {/* Right Controls */}
@@ -293,15 +283,6 @@ export const Navbar: React.FC = () => {
                 Bookings
               </Link>
             </>
-          )}
-          {isAdmin && (
-            <Link
-              to="/admin/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md text-sm font-semibold text-blue-600 dark:text-blue-400"
-            >
-              Admin Dashboard
-            </Link>
           )}
         </div>
       )}
