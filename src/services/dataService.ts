@@ -388,19 +388,31 @@ export const dataService = {
 
   async getOrgSettings(): Promise<OrganizationSettings> {
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase.from('organization_settings').select('*').single();
-      if (!error && data) return data;
+      try {
+        const { data, error } = await supabase.from('organization_settings').select('*').single();
+        if (!error && data) {
+          const local = mockStorage.getOrgSettings();
+          return { ...local, ...data };
+        }
+      } catch (e) {
+        console.warn('Error fetching org settings from Supabase:', e);
+      }
     }
     return mockStorage.getOrgSettings();
   },
 
   async updateOrgSettings(settings: OrganizationSettings): Promise<OrganizationSettings> {
-    if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase.from('organization_settings').upsert({ id: 1, ...settings }).select().single();
-      if (!error && data) return data;
-    }
-
     mockStorage.setOrgSettings(settings);
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.from('organization_settings').upsert({ id: 1, ...settings }).select().single();
+        if (!error && data) {
+          return { ...settings, ...data };
+        }
+      } catch (e) {
+        console.warn('Supabase org settings update error:', e);
+      }
+    }
     return settings;
   },
 

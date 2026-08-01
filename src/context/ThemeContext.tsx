@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { OrganizationSettings } from '../types';
 import { dataService } from '../services/dataService';
+import { mockStorage } from '../services/mockDataService';
 
 interface ThemeContextType {
   darkMode: boolean;
@@ -19,18 +20,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
-  const [orgSettings, setOrgSettings] = useState<OrganizationSettings>({
-    id: 1,
-    organization_name: 'GovTech Training Academy',
-    website_name: 'Training Portal',
-    logo_url: 'https://images.unsplash.com/photo-1542744094-3a317272018a?w=150&auto=format&fit=crop&q=80',
-    banner_url: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&auto=format&fit=crop&q=80',
-    primary_color: '#2563eb',
-    secondary_color: '#4f46e5',
-    footer_text: '© 2026 GovTech Training Academy. All Rights Reserved.',
-    contact_email: 'support@training.gov.my',
-    phone: '+60 3-8000 8000',
-    address: 'Level 5, Block B, Federal Government Administrative Centre, Putrajaya, Malaysia'
+  const [orgSettings, setOrgSettings] = useState<OrganizationSettings>(() => {
+    return mockStorage.getOrgSettings();
   });
 
   const reloadSettings = async () => {
@@ -38,6 +29,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const settings = await dataService.getOrgSettings();
       if (settings) {
         setOrgSettings(settings);
+        mockStorage.setOrgSettings(settings);
         applyColorVariables(settings.primary_color, settings.secondary_color);
       }
     } catch (e) {
@@ -46,6 +38,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const applyColorVariables = (primary: string, secondary: string) => {
+    if (!primary || !secondary) return;
     const root = document.documentElement;
     root.style.setProperty('--color-primary', primary);
     root.style.setProperty('--color-secondary', secondary);
@@ -67,9 +60,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const toggleDarkMode = () => setDarkMode(prev => !prev);
 
   const updateOrgSettings = async (newSettings: OrganizationSettings) => {
-    const updated = await dataService.updateOrgSettings(newSettings);
-    setOrgSettings(updated);
-    applyColorVariables(updated.primary_color, updated.secondary_color);
+    mockStorage.setOrgSettings(newSettings);
+    setOrgSettings(newSettings);
+    applyColorVariables(newSettings.primary_color, newSettings.secondary_color);
+    try {
+      const updated = await dataService.updateOrgSettings(newSettings);
+      if (updated) {
+        setOrgSettings(updated);
+        mockStorage.setOrgSettings(updated);
+      }
+    } catch (err) {
+      console.warn('Supabase org settings update warning:', err);
+    }
   };
 
   return (
