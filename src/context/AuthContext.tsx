@@ -56,15 +56,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           // Auto-heal: If profile row is missing in public.profiles, create it on the fly
           if (!profile) {
-            const isTargetAdmin = email.toLowerCase().includes('admin') || authData.user.id === 'caf244c1-c959-4588-86b5-bff7e59b8fc9';
+            const isAdminEmail = email.toLowerCase().includes('admin');
             const newProfile: UserProfile = {
               id: authData.user.id,
-              full_name: isTargetAdmin ? 'System Administrator' : (email.split('@')[0] || 'User'),
-              staff_id: isTargetAdmin ? 'ADM-0001' : `STF-${Math.floor(1000 + Math.random() * 9000)}`,
-              department: isTargetAdmin ? 'Information Technology & Security' : 'General Staff',
+              full_name: isAdminEmail ? 'System Administrator' : (email.split('@')[0] || 'User'),
+              staff_id: isAdminEmail ? 'ADM-0001' : `STF-${Math.floor(1000 + Math.random() * 9000)}`,
+              department: isAdminEmail ? 'Information Technology & Security' : 'General Staff',
               phone: '+60 3-8000 8000',
               email: authData.user.email || email.trim(),
-              role: isTargetAdmin ? 'admin' : 'user',
+              role: isAdminEmail ? 'admin' : 'user',
               is_active: true,
               created_at: new Date().toISOString()
             };
