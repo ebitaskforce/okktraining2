@@ -22,11 +22,11 @@ const getRelativeDateTime = (offsetMinutes: number): string => {
   return d.toISOString();
 };
 
-// Initial Seed Profiles
+// Initial Seed Profiles (Only Admin)
 const INITIAL_PROFILES: UserProfile[] = [
   {
     id: 'user-admin-1',
-    full_name: 'Dr. Sarah Connor',
+    full_name: 'System Administrator',
     staff_id: 'ADM-9001',
     department: 'Information Technology & Cyber Security',
     phone: '+60 12-345 6789',
@@ -34,39 +34,6 @@ const INITIAL_PROFILES: UserProfile[] = [
     role: 'admin',
     is_active: true,
     created_at: getRelativeDate(-60)
-  },
-  {
-    id: 'user-regular-1',
-    full_name: 'Ahmad Razak',
-    staff_id: 'STF-1002',
-    department: 'Human Resource & Administration',
-    phone: '+60 13-987 6543',
-    email: 'user@gov.my',
-    role: 'user',
-    is_active: true,
-    created_at: getRelativeDate(-45)
-  },
-  {
-    id: 'user-regular-2',
-    full_name: 'Emily Tan',
-    staff_id: 'STF-1003',
-    department: 'Finance & Accounting',
-    phone: '+60 17-234 5678',
-    email: 'emily.tan@gov.my',
-    role: 'user',
-    is_active: true,
-    created_at: getRelativeDate(-30)
-  },
-  {
-    id: 'user-regular-3',
-    full_name: 'Mohd Hafiz',
-    staff_id: 'STF-1004',
-    department: 'Strategic Planning & Operations',
-    phone: '+60 19-876 5432',
-    email: 'hafiz@gov.my',
-    role: 'user',
-    is_active: true,
-    created_at: getRelativeDate(-15)
   }
 ];
 
@@ -116,7 +83,7 @@ const INITIAL_SESSIONS: TrainingSession[] = [
     session_date: getRelativeDate(1),
     session_type: 'morning',
     max_seats: 25,
-    booked_seats: 18,
+    booked_seats: 0,
     status: 'available',
     registration_open: getRelativeDate(-10),
     registration_close: getRelativeDate(0),
@@ -132,8 +99,8 @@ const INITIAL_SESSIONS: TrainingSession[] = [
     session_date: getRelativeDate(1),
     session_type: 'afternoon',
     max_seats: 15,
-    booked_seats: 15,
-    status: 'closed', // FULL session for demo testing waitlist
+    booked_seats: 0,
+    status: 'available',
     registration_open: getRelativeDate(-14),
     registration_close: getRelativeDate(0),
     created_at: getRelativeDate(-14)
@@ -148,104 +115,19 @@ const INITIAL_SESSIONS: TrainingSession[] = [
     session_date: getRelativeDate(3),
     session_type: 'morning',
     max_seats: 30,
-    booked_seats: 8,
+    booked_seats: 0,
     status: 'available',
     registration_open: getRelativeDate(-7),
     registration_close: getRelativeDate(2),
     created_at: getRelativeDate(-7)
-  },
-  {
-    id: 'sess-4',
-    title: 'AI Prompt Engineering & Automation Workflow Workshop',
-    description: 'Practical hands-on training for leveraging AI tools in everyday administrative and document workflows.',
-    trainer: 'Prof. Jason Vance',
-    trainer_id: 'tr-1',
-    venue: 'Auditorium Level 3, Main Building',
-    session_date: getRelativeDate(3),
-    session_type: 'afternoon',
-    max_seats: 20,
-    booked_seats: 4,
-    status: 'available',
-    registration_open: getRelativeDate(-5),
-    registration_close: getRelativeDate(2),
-    created_at: getRelativeDate(-5)
-  },
-  {
-    id: 'sess-5',
-    title: 'Government Financial Management & Budget Planning',
-    description: 'Detailed analysis of public procurement procedures, budget allocation, and audit compliance.',
-    trainer: 'Dr. Maria Santos',
-    trainer_id: 'tr-2',
-    venue: 'Seminar Room A',
-    session_date: getRelativeDate(7),
-    session_type: 'morning',
-    max_seats: 40,
-    booked_seats: 12,
-    status: 'available',
-    registration_open: getRelativeDate(-3),
-    registration_close: getRelativeDate(6),
-    created_at: getRelativeDate(-3)
   }
 ];
 
-// Initial Seed Bookings
-const INITIAL_BOOKINGS: Booking[] = [
-  {
-    id: 'book-1',
-    user_id: 'user-regular-1',
-    session_id: 'sess-1',
-    status: 'approved',
-    approval_notes: 'Approved by HR Director.',
-    booking_date: getRelativeDateTime(-1440),
-    approved_by: 'user-admin-1',
-    approved_date: getRelativeDateTime(-720),
-    qr_code_token: 'QR-TOKEN-SESS1-USER1-9876',
-    attendance_status: 'present',
-    attendance_marked_at: getRelativeDateTime(-300),
-    attendance_marked_by: 'user-admin-1'
-  },
-  {
-    id: 'book-2',
-    user_id: 'user-regular-1',
-    session_id: 'sess-3',
-    status: 'pending',
-    booking_date: getRelativeDateTime(-300),
-    qr_code_token: 'QR-TOKEN-SESS3-USER1-5432',
-    attendance_status: 'pending'
-  },
-  {
-    id: 'book-3',
-    user_id: 'user-regular-2',
-    session_id: 'sess-1',
-    status: 'pending',
-    booking_date: getRelativeDateTime(-180),
-    qr_code_token: 'QR-TOKEN-SESS1-USER2-1122',
-    attendance_status: 'pending'
-  },
-  {
-    id: 'book-4',
-    user_id: 'user-regular-3',
-    session_id: 'sess-2',
-    status: 'approved',
-    approval_notes: 'Department quota approved.',
-    booking_date: getRelativeDateTime(-2880),
-    approved_by: 'user-admin-1',
-    approved_date: getRelativeDateTime(-1440),
-    qr_code_token: 'QR-TOKEN-SESS2-USER3-3344',
-    attendance_status: 'pending'
-  }
-];
+// Initial Seed Bookings (Empty for clean state)
+const INITIAL_BOOKINGS: Booking[] = [];
 
-// Initial Waitlist
-const INITIAL_WAITLIST: WaitlistEntry[] = [
-  {
-    id: 'wl-1',
-    session_id: 'sess-2',
-    user_id: 'user-regular-2',
-    position: 1,
-    created_at: getRelativeDateTime(-120)
-  }
-];
+// Initial Waitlist (Empty)
+const INITIAL_WAITLIST: WaitlistEntry[] = [];
 
 // Initial Org Settings
 const INITIAL_ORG_SETTINGS: OrganizationSettings = {
@@ -266,24 +148,7 @@ const INITIAL_ORG_SETTINGS: OrganizationSettings = {
 };
 
 // Initial Notifications
-const INITIAL_NOTIFICATIONS: SystemNotification[] = [
-  {
-    id: 'notif-1',
-    user_id: 'user-regular-1',
-    title: 'Booking Approved!',
-    message: 'Your booking for Cybersecurity Awareness & Threat Intelligence 2026 (Morning Session) has been approved.',
-    is_read: false,
-    created_at: getRelativeDateTime(-720)
-  },
-  {
-    id: 'notif-2',
-    user_id: 'user-regular-1',
-    title: 'Booking Request Submitted',
-    message: 'Your booking for Agile Leadership (Morning Session) is currently pending admin approval.',
-    is_read: true,
-    created_at: getRelativeDateTime(-300)
-  }
-];
+const INITIAL_NOTIFICATIONS: SystemNotification[] = [];
 
 // Initial Audit Logs
 const INITIAL_AUDIT_LOGS: AuditLog[] = [
