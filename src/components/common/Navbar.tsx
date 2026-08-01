@@ -59,19 +59,8 @@ export const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* Center Navigation Links */}
+          {/* Center Navigation Links (User navigation only when authenticated) */}
           <nav className="hidden md:flex items-center space-x-1">
-            <Link
-              to="/"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isCurrentPath('/') 
-                  ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 font-semibold' 
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              Home
-            </Link>
-
             {isAuthenticated && !isAdmin && (
               <>
                 <Link
@@ -123,7 +112,7 @@ export const Navbar: React.FC = () => {
                 className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-semibold text-blue-600 bg-blue-50 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-xs"
               >
                 <Shield className="w-4 h-4" />
-                Admin Portal
+                Admin Dashboard
               </Link>
             )}
           </nav>
@@ -252,16 +241,9 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-blue-600 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors"
                 >
                   User Login
-                </Link>
-                <Link
-                  to="/admin/login"
-                  className="px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors flex items-center gap-1"
-                >
-                  <Shield className="w-3.5 h-3.5" />
-                  Admin Login
                 </Link>
               </div>
             )}
@@ -280,13 +262,6 @@ export const Navbar: React.FC = () => {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 space-y-2">
-          <Link
-            to="/"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200"
-          >
-            Home
-          </Link>
           {isAuthenticated && !isAdmin && (
             <>
               <Link

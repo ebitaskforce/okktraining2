@@ -90,6 +90,9 @@ export interface OrganizationSettings {
   website_name: string;
   logo_url: string;
   banner_url: string;
+  hero_title?: string;
+  hero_subtitle?: string;
+  hero_badge_text?: string;
   primary_color: string;
   secondary_color: string;
   footer_text: string;
