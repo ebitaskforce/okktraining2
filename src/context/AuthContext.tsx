@@ -35,10 +35,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginUser = async (email: string, _pass: string): Promise<UserProfile> => {
     setIsLoading(true);
     try {
+      const cleanEmail = email.trim().toLowerCase();
+      const isAdminEmail = cleanEmail.includes('admin') || cleanEmail === 'nezek_raj2990@yahoo.com';
+
       // 1. Supabase Auth Mode
       if (isSupabaseConfigured && supabase) {
         const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({ 
-          email: email.trim(), 
+          email: cleanEmail, 
           password: _pass 
         });
 
@@ -56,14 +59,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           // Auto-heal: If profile row is missing in public.profiles, create it on the fly
           if (!profile) {
-            const isAdminEmail = email.toLowerCase().includes('admin');
             const newProfile: UserProfile = {
               id: authData.user.id,
               full_name: isAdminEmail ? 'System Administrator' : (email.split('@')[0] || 'User'),
               staff_id: isAdminEmail ? 'ADM-0001' : `STF-${Math.floor(1000 + Math.random() * 9000)}`,
               department: isAdminEmail ? 'Information Technology & Security' : 'General Staff',
               phone: '+60 3-8000 8000',
-              email: authData.user.email || email.trim(),
+              email: authData.user.email || cleanEmail,
               role: isAdminEmail ? 'admin' : 'user',
               is_active: true,
               created_at: new Date().toISOString()
@@ -78,6 +80,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             profile = created || newProfile;
           }
 
+          // Auto-upgrade role to admin if user is designated administrator
+          if (profile && isAdminEmail && profile.role !== 'admin') {
+            profile.role = 'admin';
+            try {
+              await supabase.from('profiles').update({ role: 'admin' }).eq('id', profile.id);
+            } catch (err) {
+              console.warn('Could not update role in DB:', err);
+            }
+          }
+
           if (!profile.is_active) {
             throw new Error('Account is disabled by system administrator.');
           }
@@ -89,13 +101,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // 2. Offline / Local Demo Fallback Mode
       const profiles = mockStorage.getProfiles();
-      const match = profiles.find(p => p.email.toLowerCase() === email.trim().toLowerCase());
+      let match = profiles.find(p => p.email.toLowerCase() === cleanEmail);
+      
       if (!match) {
-        throw new Error('Invalid email address or password.');
+        // Auto-create local profile for nezek_raj2990@yahoo.com or admin emails
+        if (isAdminEmail) {
+          match = {
+            id: `user-${Date.now()}`,
+            full_name: 'System Administrator',
+            staff_id: 'ADM-0001',
+            department: 'Information Technology & Security',
+            phone: '+60 3-8000 8000',
+            email: cleanEmail,
+            role: 'admin',
+            is_active: true,
+            created_at: new Date().toISOString()
+          };
+          profiles.push(match);
+          mockStorage.setProfiles(profiles);
+        } else {
+          throw new Error('Invalid email address or password.');
+        }
       }
+
+      if (isAdminEmail && match.role !== 'admin') {
+        match.role = 'admin';
+        mockStorage.setProfiles(profiles);
+      }
+
       if (!match.is_active) {
         throw new Error('Account is disabled. Please contact system administrator.');
       }
+
       setUser(match);
       return match;
     } finally {
@@ -105,19 +142,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginAdmin = async (email: string, pass: string): Promise<UserProfile> => {
     const profile = await loginUser(email, pass);
+
+    // Explicit check & upgrade for Admin Login Portal
+    const cleanEmail = email.trim().toLowerCase();
+    if (profile.role !== 'admin' && (cleanEmail.includes('admin') || cleanEmail === 'nezek_raj2990@yahoo.com')) {
+      profile.role = 'admin';
+      setUser(profile);
+    }
+
     if (profile.role !== 'admin') {
       setUser(null);
       throw new Error('Access Denied: Admin authorization required to access this portal.');
     }
+
     return profile;
   };
 
   const registerUser = async (data: Omit<UserProfile, 'id' | 'role' | 'is_active' | 'created_at'> & { password: string }): Promise<UserProfile> => {
     setIsLoading(true);
     try {
+      const cleanEmail = data.email.trim().toLowerCase();
+      const isAdminEmail = cleanEmail.includes('admin') || cleanEmail === 'nezek_raj2990@yahoo.com';
+
       if (isSupabaseConfigured && supabase) {
         const { data: authData, error: authErr } = await supabase.auth.signUp({
-          email: data.email.trim(),
+          email: cleanEmail,
           password: data.password
         });
         if (authErr) throw new Error(authErr.message);
@@ -129,8 +178,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             staff_id: data.staff_id,
             department: data.department,
             phone: data.phone,
-            email: data.email.trim(),
-            role: 'user',
+            email: cleanEmail,
+            role: isAdminEmail ? 'admin' : 'user',
             is_active: true,
             created_at: new Date().toISOString()
           };
@@ -144,7 +193,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Local Demo Mode Registration
       const profiles = mockStorage.getProfiles();
-      const existingEmail = profiles.find(p => p.email.toLowerCase() === data.email.toLowerCase());
+      const existingEmail = profiles.find(p => p.email.toLowerCase() === cleanEmail);
       if (existingEmail) throw new Error('Email address is already registered.');
 
       const existingStaff = profiles.find(p => p.staff_id.toLowerCase() === data.staff_id.toLowerCase());
@@ -156,8 +205,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         staff_id: data.staff_id,
         department: data.department,
         phone: data.phone,
-        email: data.email,
-        role: 'user',
+        email: cleanEmail,
+        role: isAdminEmail ? 'admin' : 'user',
         is_active: true,
         created_at: new Date().toISOString()
       };
